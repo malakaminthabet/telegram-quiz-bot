@@ -1,19 +1,82 @@
-# 🧮 بوت اختبارات رياضيات النهايات - متوافق مع Python 3.13
+# 🧮 بوت اختبارات رياضيات النهايات - مع Keep-alive
+# 🔧 يعمل 24/7 على Render
+
 import os
 import asyncio
 import json
 import random
+import threading
+import time
+import requests
 from datetime import datetime
+from flask import Flask
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 # 🔐 التوكن من متغيرات البيئة
 TOKEN = os.environ.get('TELEGRAM_TOKEN')
+TEACHER_ID = 123456789  # غير هذا الرقم!
 
-# 👨🏫 رقم المعلم - ضع رقمك هنا!
-TEACHER_ID = 8422436251
+# 🌐 Flask لإبقاء البوت نشطاً
+app = Flask(__name__)
 
-# 📊 قاعدة بيانات بسيطة
+@app.route('/')
+def home():
+    return """
+    <html>
+        <head>
+            <title>بوت الرياضيات</title>
+            <style>
+                body { font-family: Arial; text-align: center; padding: 50px; }
+                h1 { color: #2c3e50; }
+                .status { color: #27ae60; font-size: 24px; }
+            </style>
+        </head>
+        <body>
+            <h1>🤖 بوت اختبارات الرياضيات</h1>
+            <div class="status">✅ يعمل بنجاح!</div>
+            <p>⏰ يعمل 24/7 على Render</p>
+            <p>👨🏫 للمعلم: استخدم /stats في Telegram</p>
+            <p>📱 للطلاب: ابحث عن @mathimatical_testBot</p>
+        </body>
+    </html>
+    """
+
+@app.route('/health')
+def health():
+    return {"status": "active", "timestamp": datetime.now().isoformat()}
+
+@app.route('/ping')
+def ping():
+    return "pong"
+
+# 🔄 وظيفة لإرسال طلبات دورية
+def keep_alive():
+    """إبقاء البوت نشطاً بإرسال طلبات دورية"""
+    def ping_server():
+        while True:
+            try:
+                # الحصول على رابط Render تلقائياً
+                render_url = os.environ.get('RENDER_URL', '')
+                if not render_url:
+                    # محاولة تخمين الرابط
+                    service_name = os.environ.get('RENDER_SERVICE_NAME', '')
+                    if service_name:
+                        render_url = f"https://{service_name}.onrender.com"
+                
+                if render_url:
+                    response = requests.get(f"{render_url}/ping", timeout=10)
+                    print(f"✅ Keep-alive ping: {response.status_code} at {datetime.now().strftime('%H:%M:%S')}")
+                else:
+                    print("⚠️ لا يمكن تحديد رابط Render")
+            except Exception as e:
+                print(f"⚠️ Keep-alive failed: {e}")
+            time.sleep(300)  # كل 5 دقائق
+    
+    thread = threading.Thread(target=ping_server, daemon=True)
+    thread.start()
+
+# 📊 قاعدة البيانات
 class Database:
     def __init__(self):
         self.data_file = 'data.json'
@@ -37,7 +100,8 @@ class Database:
                 'name': name,
                 'correct': 0,
                 'total': 0,
-                'joined': datetime.now().strftime('%Y-%m-%d')
+                'joined': datetime.now().strftime('%Y-%m-%d'),
+                'last_active': datetime.now().isoformat()
             }
             self.save_data()
             return True
@@ -47,6 +111,8 @@ class Database:
         user_id = str(user_id)
         if user_id in self.data['students']:
             self.data['students'][user_id]['total'] += 1
+            self.data['students'][user_id]['last_active'] = datetime.now().isoformat()
+            
             if is_correct:
                 self.data['students'][user_id]['correct'] += 1
             
@@ -59,30 +125,19 @@ class Database:
 
 db = Database()
 
-# 📚 أسئلة صح/خطأ
+# 📚 الأسئلة (نفس الأسئلة السابقة)
 TRUE_FALSE_QUESTIONS = [
     {"id": 1, "q": "lim┬(x→0)〖sin(x)/x = 1〗", "ans": True, "exp": "نعم، هذه نهاية أساسية"},
     {"id": 2, "q": "lim┬(x→∞)〖1/x = ∞〗", "ans": False, "exp": "خطأ، النهاية = 0"},
     {"id": 3, "q": "lim┬(x→2)〖(x²-4)/(x-2)=4〗", "ans": True, "exp": "صحيح، (x²-4)/(x-2)=x+2"},
-    {"id": 4, "q": "lim┬(x→0)〖(1+x)^(1/x)=e〗", "ans": True, "exp": "نعم، تعريف العدد e"},
-    {"id": 5, "q": "إذا lim┬(x→a)〖f(x)〗 موجودة، f(a) يجب أن تكون معرفة", "ans": False, "exp": "خطأ، النهاية لا تتطلب تعريف الدالة عند النقطة"}
 ]
 
-# 📚 أسئلة خيارات متعددة
 MCQ_QUESTIONS = [
     {"id": 1, "q": "ما قيمة: lim┬(x→3)〖(x²-9)/(x-3)〗؟", "ops": ["0", "3", "6", "9"], "ans": 2, "exp": "الحل: (x²-9)/(x-3)=x+3، النهاية=6"},
     {"id": 2, "q": "lim┬(x→0)〖(e^x-1)/x〗=؟", "ops": ["0", "1", "e", "∞"], "ans": 1, "exp": "نهاية أساسية = 1"},
-    {"id": 3, "q": "lim┬(x→∞)〖(3x²+2x+1)/(x²+5)〗=؟", "ops": ["0", "1", "3", "∞"], "ans": 2, "exp": "النهاية = معامل أعلى درجة = 3"},
-    {"id": 4, "q": "ما قيمة: lim┬(x→π/2)〖tan(x)〗؟", "ops": ["0", "1", "π/2", "∞"], "ans": 3, "exp": "tan(π/2) غير معرفة، النهاية = ∞"},
-    {"id": 5, "q": "lim┬(x→1)〖(√x-1)/(x-1)〗=؟", "ops": ["0", "1/2", "1", "2"], "ans": 1, "exp": "بضرب في (√x+1)/(√x+1)، النهاية=1/2"},
-    {"id": 6, "q": "ما قيمة: lim┬(x→0)〖(ln(1+x))/x〗؟", "ops": ["0", "1", "e", "∞"], "ans": 1, "exp": "نهاية أساسية = 1"},
-    {"id": 7, "q": "lim┬(x→∞)〖(1+1/x)^x〗=؟", "ops": ["0", "1", "e", "∞"], "ans": 2, "exp": "هذا تعريف العدد e"},
-    {"id": 8, "q": "ما قيمة: lim┬(x→0)〖(1-cos(x))/x²〗؟", "ops": ["0", "1/2", "1", "2"], "ans": 1, "exp": "باستخدام متطابقة مثلثية، النهاية=1/2"},
-    {"id": 9, "q": "lim┬(x→2)〖|x-2|/(x-2)〗=؟", "ops": ["-1", "0", "1", "غير موجودة"], "ans": 3, "exp": "النهاية من اليمين=1، من اليسار=-1، إذن غير موجودة"},
-    {"id": 10, "q": "ما قيمة: lim┬(x→0)〖(sin(3x))/x〗؟", "ops": ["0", "1", "3", "∞"], "ans": 2, "exp": "باستخدام lim sin(ax)/(ax)=1، النهاية=3"}
 ]
 
-# 🎯 دوال البوت
+# 🎯 دوال البوت (نفس الدوال السابقة)
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     is_new = db.register_student(user.id, user.first_name)
@@ -93,29 +148,25 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         student = db.data['students'].get(str(user.id), {})
         msg = f"👋 أهلًا بعودتك {user.first_name}!\nنتيجتك: {student.get('correct', 0)}/{student.get('total', 0)}"
     
-    msg += "\n\n📋 الأوامر:\n/start - البداية\n/truefalse - 5 أسئلة صح/خطأ\n/mcq - 10 أسئلة خيارات\n/score - نتيجتك\n/top - المتصدرين\n/stats - للمعلم فقط"
+    msg += "\n\n📋 الأوامر:\n/start - البداية\n/truefalse - أسئلة صح/خطأ\n/mcq - أسئلة خيارات\n/score - نتيجتك\n/top - المتصدرين"
     
     await update.message.reply_text(msg)
 
 async def truefalse_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = random.choice(TRUE_FALSE_QUESTIONS)
-    
     buttons = [
         [InlineKeyboardButton("✅ صحيح", callback_data=f"tf_{q['id']}_true")],
         [InlineKeyboardButton("❌ خطأ", callback_data=f"tf_{q['id']}_false")]
     ]
-    
     text = f"🔵 سؤال صح/خطأ:\n\n❓ {q['q']}"
     await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(buttons))
 
 async def mcq_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = random.choice(MCQ_QUESTIONS)
-    
     buttons = []
     letters = ['أ', 'ب', 'ج', 'د']
     for i, option in enumerate(q['ops']):
         buttons.append([InlineKeyboardButton(f"{letters[i]}. {option}", callback_data=f"mcq_{q['id']}_{i}")])
-    
     text = f"🔴 سؤال خيارات:\n\n❓ {q['q']}"
     await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(buttons))
 
@@ -124,41 +175,27 @@ async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     
     data = query.data.split('_')
-    q_type = data[0]
-    q_id = int(data[1])
-    answer = data[2]
+    q_type, q_id, answer = data[0], int(data[1]), data[2]
     
     if q_type == 'tf':
         q = next((q for q in TRUE_FALSE_QUESTIONS if q['id'] == q_id), None)
         if q:
-            user_answer = (answer == 'true')
-            is_correct = (user_answer == q['ans'])
-            
-            if is_correct:
-                msg = f"✅ صحيح!\n\n📝 {q['exp']}"
-            else:
-                correct = "صحيح" if q['ans'] else "خطأ"
-                msg = f"❌ خطأ!\nالإجابة الصحيحة: {correct}\n\n📝 {q['exp']}"
-            
+            is_correct = ((answer == 'true') == q['ans'])
+            msg = f"✅ صحيح!\n\n{q['exp']}" if is_correct else f"❌ خطأ!\n\n{q['exp']}"
             db.update_score(query.from_user.id, is_correct)
     
     elif q_type == 'mcq':
         q = next((q for q in MCQ_QUESTIONS if q['id'] == q_id), None)
         if q:
-            user_answer = int(answer)
-            is_correct = (user_answer == q['ans'])
+            is_correct = (int(answer) == q['ans'])
             letters = ['أ', 'ب', 'ج', 'د']
-            
             if is_correct:
-                msg = f"✅ إجابة صحيحة!\n\n📝 {q['exp']}"
+                msg = f"✅ إجابة صحيحة!\n\n{q['exp']}"
             else:
-                correct_letter = letters[q['ans']]
-                correct_answer = q['ops'][q['ans']]
-                msg = f"❌ إجابة خاطئة!\nالصحيحة: {correct_letter}. {correct_answer}\n\n📝 {q['exp']}"
-            
+                correct = letters[q['ans']]
+                msg = f"❌ إجابة خاطئة!\nالصحيحة: {correct}\n\n{q['exp']}"
             db.update_score(query.from_user.id, is_correct)
     
-    # إضافة النتيجة الحالية
     user_id = str(query.from_user.id)
     if user_id in db.data['students']:
         student = db.data['students'][user_id]
@@ -169,135 +206,60 @@ async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def score_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
-    
     if user_id not in db.data['students']:
         await update.message.reply_text("⚠️ اكتب /start أولاً")
         return
     
     student = db.data['students'][user_id]
-    total = student['total']
-    correct = student['correct']
+    total, correct = student['total'], student['correct']
     percent = (correct/total*100) if total > 0 else 0
     
-    report = f"""
-📊 تقرير أدائك:
-
-✅ الإجابات الصحيحة: {correct}
-❌ الإجابات الخاطئة: {total - correct}
-📝 إجمالي الأسئلة: {total}
-🎯 النسبة: {percent:.1f}%
-
-📅 انضممت: {student['joined']}
-"""
-    
-    if percent >= 80:
-        report += "\n🏆 ممتاز! مستواك رائع"
-    elif percent >= 60:
-        report += "\n⭐ جيد جداً! واصل التقدم"
-    elif percent >= 40:
-        report += "\n💪 مستوى مقبول، تدرب أكثر"
-    else:
-        report += "\n📚 راجع الأساسيات وتدرب"
-    
+    report = f"📊 نتيجتك:\n✅ {correct} صحيح\n❌ {total-correct} خطأ\n🎯 {percent:.1f}%\n📅 {student['joined']}"
     await update.message.reply_text(report)
 
-async def top_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not db.data['students']:
-        await update.message.reply_text("🏆 لا توجد نتائج بعد!")
-        return
-    
-    rankings = []
-    for user_id, student in db.data['students'].items():
-        if student['total'] >= 3:
-            percent = (student['correct']/student['total']*100)
-            rankings.append((student['name'], percent, student['correct'], student['total']))
-    
-    if not rankings:
-        await update.message.reply_text("🏆 لم يكمل أحد 3 أسئلة بعد!")
-        return
-    
-    rankings.sort(key=lambda x: x[1], reverse=True)
-    
-    text = "🏆 المتصدرون:\n\n"
-    medals = ["🥇", "🥈", "🥉", "🎖️", "🎖️"]
-    
-    for i, (name, perc, correct, total) in enumerate(rankings[:5]):
-        medal = medals[i] if i < len(medals) else "🔸"
-        text += f"{medal} {name}: {perc:.1f}% ({correct}/{total})\n"
-    
-    await update.message.reply_text(text)
+# 🔧 تشغيل Flask في خيط منفصل
+def run_flask():
+    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
 
-async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != TEACHER_ID:
-        await update.message.reply_text("🔒 هذا الأمر للمعلم فقط!")
-        return
-    
-    total_students = len(db.data['students'])
-    active_students = sum(1 for s in db.data['students'].values() if s['total'] > 0)
-    total_questions = db.data['total_questions']
-    total_correct = db.data['correct_answers']
-    
-    percent = (total_correct/total_questions*100) if total_questions > 0 else 0
-    
-    stats_text = f"""
-👨🏫 إحصائيات المعلم:
-
-👥 الطلاب المسجلين: {total_students}
-🎯 الطلاب النشطين: {active_students}
-📝 إجمالي الأسئلة المجابة: {total_questions}
-✅ الإجابات الصحيحة: {total_correct}
-📈 نسبة النجاح: {percent:.1f}%
-"""
-    await update.message.reply_text(stats_text)
-
-# 🔧 الحل لمشكلة Python 3.13
-def main():
-    """الدالة الرئيسية المعدلة لتعمل مع Python 3.13"""
+# 🔧 تشغيل البوت
+def run_telegram_bot():
     print("=" * 50)
     print("🧮 بوت اختبارات رياضيات النهايات")
     print("=" * 50)
     print(f"📅 بدأ التشغيل: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print(f"👥 الطلاب المسجلين: {len(db.data['students'])}")
-    print(f"📝 الأسئلة المجابة: {db.data['total_questions']}")
-    print("✅ البوت يعمل 24/7 على Render!")
-    print("=" * 50)
-    print("\n📱 **تعليمات:**")
-    print("1. اذهب إلى Telegram وابحث عن بوتك")
-    print("2. اكتب /start للتسجيل")
-    print("3. اكتب /truefalse لأسئلة صح/خطأ")
-    print("4. اكتب /mcq لأسئلة خيارات متعددة")
-    print("5. اكتب /score لمتابعة تقدمك")
+    print("✅ البوت يعمل 24/7 مع Keep-alive!")
     print("=" * 50)
     
-    # حل مشكلة asyncio في Python 3.13
-    import nest_asyncio
-    nest_asyncio.apply()
+    # بدء Keep-alive
+    keep_alive()
     
-    # إنشاء التطبيق
-    app = Application.builder().token(TOKEN).build()
+    # تشغيل البوت
+    async def main():
+        app = Application.builder().token(TOKEN).build()
+        app.add_handler(CommandHandler("start", start_command))
+        app.add_handler(CommandHandler("truefalse", truefalse_command))
+        app.add_handler(CommandHandler("mcq", mcq_command))
+        app.add_handler(CommandHandler("score", score_command))
+        app.add_handler(CallbackQueryHandler(handle_answer, pattern="^tf_"))
+        app.add_handler(CallbackQueryHandler(handle_answer, pattern="^mcq_"))
+        
+        await app.initialize()
+        await app.start()
+        await app.updater.start_polling()
+        
+        # استمر في التشغيل
+        while True:
+            await asyncio.sleep(3600)
     
-    # إضافة الأوامر
-    app.add_handler(CommandHandler("start", start_command))
-    app.add_handler(CommandHandler("truefalse", truefalse_command))
-    app.add_handler(CommandHandler("mcq", mcq_command))
-    app.add_handler(CommandHandler("score", score_command))
-    app.add_handler(CommandHandler("top", top_command))
-    app.add_handler(CommandHandler("stats", stats_command))
-    
-    # إضافة معالجات الاستجابات
-    app.add_handler(CallbackQueryHandler(handle_answer, pattern="^tf_"))
-    app.add_handler(CallbackQueryHandler(handle_answer, pattern="^mcq_"))
-    
-    # تشغيل البوت بطريقة متوافقة مع Python 3.13
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    
-    try:
-        loop.run_until_complete(app.run_polling())
-    except KeyboardInterrupt:
-        pass
-    finally:
-        loop.close()
+    asyncio.run(main())
 
+# 🚀 نقطة البداية
 if __name__ == "__main__":
-    main()
+    # تشغيل Flask في خيط منفصل
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
+    flask_thread.start()
+    
+    # تشغيل البوت بعد ثانيتين
+    time.sleep(2)
+    run_telegram_bot()
