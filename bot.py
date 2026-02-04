@@ -1,4 +1,5 @@
-# 🧮 بوت اختبارات رياضيات النهايات (Limits)
+# 🧮 بوت اختبارات رياضيات النهايات
+# 📚 صح/خطأ + خيارات متعددة
 # 👨🏫 إعداد: معلم الرياضيات
 
 import os
@@ -9,36 +10,29 @@ from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
-# 🔐 التوكن من متغيرات البيئة (سأضيفه في Render لاحقاً)
+# 🔐 التوكن - سأضيفه في Render
 TOKEN = os.environ.get('TELEGRAM_TOKEN', '8541804759:AAEb2NnuZoCxDalpgdsGUgaoEcwctj7DYaw')
+TEACHER_ID = 8422436251  # غير هذا الرقم!
 
-# 👨🏫 رقم المعلم (غير هذا الرقم!)
-TEACHER_ID = 8422436251
-
-# 📊 قاعدة البيانات البسيطة
 class Database:
     def __init__(self):
-        self.data_file = 'data.json'
         self.data = self.load_data()
     
     def load_data(self):
         try:
-            with open(self.data_file, 'r', encoding='utf-8') as f:
+            with open('data.json', 'r') as f:
                 return json.load(f)
         except:
-            return {'students': {}, 'questions': 0, 'correct': 0}
+            return {'students': {}, 'total': 0, 'correct': 0}
     
     def save_data(self):
-        with open(self.data_file, 'w', encoding='utf-8') as f:
-            json.dump(self.data, f, ensure_ascii=False, indent=2)
+        with open('data.json', 'w') as f:
+            json.dump(self.data, f, indent=2)
     
     def register(self, user_id, name):
-        user_id = str(user_id)
-        if user_id not in self.data['students']:
-            self.data['students'][user_id] = {
-                'name': name,
-                'correct': 0,
-                'total': 0,
+        if str(user_id) not in self.data['students']:
+            self.data['students'][str(user_id)] = {
+                'name': name, 'correct': 0, 'total': 0,
                 'joined': datetime.now().strftime('%Y-%m-%d')
             }
             self.save_data()
@@ -46,300 +40,134 @@ class Database:
         return False
     
     def update_score(self, user_id, is_correct):
-        user_id = str(user_id)
-        if user_id in self.data['students']:
-            self.data['students'][user_id]['total'] += 1
+        user = self.data['students'].get(str(user_id))
+        if user:
+            user['total'] += 1
             if is_correct:
-                self.data['students'][user_id]['correct'] += 1
-            
-            self.data['questions'] += 1
-            if is_correct:
+                user['correct'] += 1
                 self.data['correct'] += 1
-            
+            self.data['total'] += 1
             self.save_data()
-            return self.data['students'][user_id]
+            return user
 
 db = Database()
 
-# 📚 أسئلة صح/خطأ في النهايات (5 أسئلة)
-TRUE_FALSE = [
-    {
-        "id": 1,
-        "question": "lim┬(x→0)〖sin(x)/x = 1〗",
-        "answer": True,
-        "explain": "نعم، هذه نهاية أساسية معروفة"
-    },
-    {
-        "id": 2,
-        "question": "lim┬(x→∞)〖1/x = ∞〗",
-        "answer": False,
-        "explain": "خطأ، النهاية = 0"
-    },
-    {
-        "id": 3,
-        "question": "lim┬(x→2)〖(x² - 4)/(x - 2) = 4〗",
-        "answer": True,
-        "explain": "صحيح، (x²-4)/(x-2) = x+2 عندما x≠2"
-    },
-    {
-        "id": 4,
-        "question": "lim┬(x→0)〖(1 + x)^(1/x) = e〗",
-        "answer": True,
-        "explain": "نعم، هذه صيغة العدد النيبيري e"
-    },
-    {
-        "id": 5,
-        "question": "إذا lim┬(x→a)〖f(x)〗 موجودة، فإن f(a) يجب أن تكون معرفة",
-        "answer": False,
-        "explain": "خطأ، النهاية لا تتطلب تعريف الدالة عند النقطة"
-    }
+# 🎯 أسئلة صح/خطأ (5 أسئلة)
+TF_QUESTIONS = [
+    {"id": 1, "q": "lim┬(x→0)〖sin(x)/x = 1〗", "ans": True, "exp": "نعم، نهاية أساسية"},
+    {"id": 2, "q": "lim┬(x→∞)〖1/x = ∞〗", "ans": False, "exp": "خطأ، النهاية = 0"},
+    {"id": 3, "q": "lim┬(x→2)〖(x²-4)/(x-2)=4〗", "ans": True, "exp": "صحيح، (x²-4)/(x-2)=x+2"},
+    {"id": 4, "q": "lim┬(x→0)〖(1+x)^(1/x)=e〗", "ans": True, "exp": "نعم، تعريف العدد e"},
+    {"id": 5, "q": "إذا lim┬(x→a)〖f(x)〗 موجودة، f(a) يجب أن تكون معرفة", "ans": False, "exp": "خطأ، النهاية لا تتطلب تعريف الدالة عند النقطة"}
 ]
 
-# 📚 أسئلة خيارات متعددة في النهايات (10 أسئلة)
-MCQS = [
-    {
-        "id": 1,
-        "question": "ما قيمة: lim┬(x→3)〖(x² - 9)/(x - 3)〗؟",
-        "options": ["0", "3", "6", "9"],
-        "answer": 2,
-        "explain": "الحل: (x²-9)/(x-3) = x+3، النهاية = 6"
-    },
-    {
-        "id": 2,
-        "question": "lim┬(x→0)〖(e^x - 1)/x〗 = ?",
-        "options": ["0", "1", "e", "∞"],
-        "answer": 1,
-        "explain": "هذه نهاية أساسية = 1"
-    },
-    {
-        "id": 3,
-        "question": "lim┬(x→∞)〖(3x² + 2x + 1)/(x² + 5)〗 = ?",
-        "options": ["0", "1", "3", "∞"],
-        "answer": 2,
-        "explain": "النهاية = معامل أعلى درجة = 3/1 = 3"
-    },
-    {
-        "id": 4,
-        "question": "ما قيمة: lim┬(x→π/2)〖tan(x)〗؟",
-        "options": ["0", "1", "π/2", "∞"],
-        "answer": 3,
-        "explain": "tan(π/2) غير معرفة، النهاية = ∞"
-    },
-    {
-        "id": 5,
-        "question": "lim┬(x→1)〖(√x - 1)/(x - 1)〗 = ?",
-        "options": ["0", "1/2", "1", "2"],
-        "answer": 1,
-        "explain": "بضرب في (√x+1)/(√x+1)، النهاية = 1/2"
-    },
-    {
-        "id": 6,
-        "question": "ما قيمة: lim┬(x→0)〖(ln(1 + x))/x〗؟",
-        "options": ["0", "1", "e", "∞"],
-        "answer": 1,
-        "explain": "نهاية أساسية = 1"
-    },
-    {
-        "id": 7,
-        "question": "lim┬(x→∞)〖(1 + 1/x)^x〗 = ?",
-        "options": ["0", "1", "e", "∞"],
-        "answer": 2,
-        "explain": "هذا تعريف العدد e"
-    },
-    {
-        "id": 8,
-        "question": "ما قيمة: lim┬(x→0)〖(1 - cos(x))/x²〗؟",
-        "options": ["0", "1/2", "1", "2"],
-        "answer": 1,
-        "explain": "باستخدام متطابقة مثلثية، النهاية = 1/2"
-    },
-    {
-        "id": 9,
-        "question": "lim┬(x→2)〖|x - 2|/(x - 2)〗 = ?",
-        "options": ["-1", "0", "1", "غير موجودة"],
-        "answer": 3,
-        "explain": "النهاية من اليمين = 1، من اليسار = -1، إذن غير موجودة"
-    },
-    {
-        "id": 10,
-        "question": "ما قيمة: lim┬(x→0)〖(sin(3x))/x〗؟",
-        "options": ["0", "1", "3", "∞"],
-        "answer": 2,
-        "explain": "باستخدام lim sin(ax)/(ax)=1، النهاية = 3"
-    }
+# 🎯 أسئلة خيارات (10 أسئلة)
+MCQ_QUESTIONS = [
+    {"id": 1, "q": "ما قيمة: lim┬(x→3)〖(x²-9)/(x-3)〗؟", "ops": ["0","3","6","9"], "ans": 2, "exp": "الحل: (x²-9)/(x-3)=x+3 ← النهاية=6"},
+    {"id": 2, "q": "lim┬(x→0)〖(e^x-1)/x〗=؟", "ops": ["0","1","e","∞"], "ans": 1, "exp": "نهاية أساسية = 1"},
+    {"id": 3, "q": "lim┬(x→∞)〖(3x²+2x+1)/(x²+5)〗=؟", "ops": ["0","1","3","∞"], "ans": 2, "exp": "النهاية = معامل أعلى درجة = 3"},
+    {"id": 4, "q": "ما قيمة: lim┬(x→π/2)〖tan(x)〗؟", "ops": ["0","1","π/2","∞"], "ans": 3, "exp": "tan(π/2) غير معرفة ← النهاية = ∞"},
+    {"id": 5, "q": "lim┬(x→1)〖(√x-1)/(x-1)〗=؟", "ops": ["0","1/2","1","2"], "ans": 1, "exp": "بضرب في (√x+1)/(√x+1) ← النهاية=1/2"},
+    {"id": 6, "q": "ما قيمة: lim┬(x→0)〖(ln(1+x))/x〗؟", "ops": ["0","1","e","∞"], "ans": 1, "exp": "نهاية أساسية = 1"},
+    {"id": 7, "q": "lim┬(x→∞)〖(1+1/x)^x〗=؟", "ops": ["0","1","e","∞"], "ans": 2, "exp": "هذا تعريف العدد e"},
+    {"id": 8, "q": "ما قيمة: lim┬(x→0)〖(1-cos(x))/x²〗؟", "ops": ["0","1/2","1","2"], "ans": 1, "exp": "باستخدام متطابقة مثلثية ← النهاية=1/2"},
+    {"id": 9, "q": "lim┬(x→2)〖|x-2|/(x-2)〗=؟", "ops": ["-1","0","1","غير موجودة"], "ans": 3, "exp": "النهاية من اليمين=1، من اليسار=-1 ← غير موجودة"},
+    {"id": 10, "q": "ما قيمة: lim┬(x→0)〖(sin(3x))/x〗؟", "ops": ["0","1","3","∞"], "ans": 2, "exp": "باستخدام lim sin(ax)/(ax)=1 ← النهاية=3"}
 ]
-
-# ==================== دوال البوت ====================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     is_new = db.register(user.id, user.first_name)
     
-    if is_new:
-        msg = f"🎉 أهلاً {user.first_name}!\nتم تسجيلك في بوت اختبارات النهايات."
-    else:
-        student = db.data['students'].get(str(user.id), {})
-        msg = f"👋 أهلًا بعودتك {user.first_name}!\nنتيجتك: {student.get('correct', 0)}/{student.get('total', 0)}"
+    msg = f"{'🎉 أهلاً' if is_new else '👋 أهلًا بعودتك'} {user.first_name}!\n"
+    msg += "أنا بوت اختبارات رياضيات النهايات.\n\n"
+    msg += "📋 الأوامر:\n/start - البداية\n/truefalse - 5 أسئلة صح/خطأ\n/mcq - 10 أسئلة خيارات\n/score - نتيجتك\n/top - المتصدرين"
     
-    msg += """
-    
-📋 الأوامر:
-/start - البداية
-/help - المساعدة
-/truefalse - 5 أسئلة صح/خطأ
-/mcq - 10 أسئلة خيارات متعددة
-/score - نتيجتك
-/top - المتصدرين
-/stats - للمعلم فقط
-"""
     await update.message.reply_text(msg)
 
-async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    help_text = """
-🧮 بوت اختبارات رياضيات النهايات
-
-🎯 أنواع الأسئلة:
-1. صح/خطأ - 5 أسئلة (/truefalse)
-2. خيارات متعددة - 10 أسئلة (/mcq)
-
-📚 مواضيع الأسئلة:
-• النهايات الأساسية
-• النهايات عند اللانهاية
-• النهايات المثلثية
-• النهايات الأسية
-
-🚀 ابدأ الآن بـ:
-/truefalse أو /mcq
-"""
-    await update.message.reply_text(help_text)
-
 async def truefalse(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    q = random.choice(TRUE_FALSE)
-    
+    q = random.choice(TF_QUESTIONS)
     buttons = [
         [InlineKeyboardButton("✅ صحيح", callback_data=f"tf_{q['id']}_true")],
         [InlineKeyboardButton("❌ خطأ", callback_data=f"tf_{q['id']}_false")]
     ]
-    
-    text = f"🔵 سؤال صح/خطأ:\n\n❓ {q['question']}"
-    await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(buttons))
+    await update.message.reply_text(f"❓ {q['q']}", reply_markup=InlineKeyboardMarkup(buttons))
 
 async def mcq(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    q = random.choice(MCQS)
-    
+    q = random.choice(MCQ_QUESTIONS)
     buttons = []
     letters = ['أ', 'ب', 'ج', 'د']
-    for i, option in enumerate(q['options']):
-        buttons.append([InlineKeyboardButton(f"{letters[i]}. {option}", callback_data=f"mcq_{q['id']}_{i}")])
-    
-    text = f"🔴 سؤال خيارات:\n\n❓ {q['question']}"
-    await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(buttons))
+    for i, opt in enumerate(q['ops']):
+        buttons.append([InlineKeyboardButton(f"{letters[i]}. {opt}", callback_data=f"mcq_{q['id']}_{i}")])
+    await update.message.reply_text(f"❓ {q['q']}", reply_markup=InlineKeyboardMarkup(buttons))
 
 async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
     data = query.data.split('_')
-    q_type = data[0]
-    q_id = int(data[1])
-    answer = data[2]
+    q_type, q_id, ans = data[0], int(data[1]), data[2]
     
     if q_type == 'tf':
-        q = next((q for q in TRUE_FALSE if q['id'] == q_id), None)
+        q = next((q for q in TF_QUESTIONS if q['id'] == q_id), None)
         if q:
-            user_answer = (answer == 'true')
-            is_correct = (user_answer == q['answer'])
-            
-            if is_correct:
-                msg = f"✅ صحيح!\n\n📝 {q['explain']}"
-            else:
-                correct = "صحيح" if q['answer'] else "خطأ"
-                msg = f"❌ خطأ!\nالإجابة الصحيحة: {correct}\n\n📝 {q['explain']}"
-            
-            db.update_score(query.from_user.id, is_correct)
+            is_correct = ((ans == 'true') == q['ans'])
+            msg = f"✅ صحيح!\n\n{q['exp']}" if is_correct else f"❌ خطأ!\n\n{q['exp']}"
     
     elif q_type == 'mcq':
-        q = next((q for q in MCQS if q['id'] == q_id), None)
+        q = next((q for q in MCQ_QUESTIONS if q['id'] == q_id), None)
         if q:
-            user_answer = int(answer)
-            is_correct = (user_answer == q['answer'])
+            is_correct = (int(ans) == q['ans'])
             letters = ['أ', 'ب', 'ج', 'د']
-            
             if is_correct:
-                msg = f"✅ إجابة صحيحة!\n\n📝 {q['explain']}"
+                msg = f"✅ إجابة صحيحة!\n\n{q['exp']}"
             else:
-                correct_letter = letters[q['answer']]
-                correct_answer = q['options'][q['answer']]
-                msg = f"❌ إجابة خاطئة!\nالصحيحة: {correct_letter}. {correct_answer}\n\n📝 {q['explain']}"
-            
-            db.update_score(query.from_user.id, is_correct)
+                correct = letters[q['ans']]
+                msg = f"❌ إجابة خاطئة!\nالصحيحة: {correct}\n\n{q['exp']}"
     
-    # إضافة النتيجة الحالية
-    user_id = str(query.from_user.id)
-    if user_id in db.data['students']:
-        student = db.data['students'][user_id]
-        msg += f"\n\n📊 نتيجتك: {student['correct']}/{student['total']}"
+    # تحديث النتيجة
+    if 'is_correct' in locals():
+        db.update_score(query.from_user.id, is_correct)
+        user = db.data['students'].get(str(query.from_user.id), {})
+        msg += f"\n\n📊 نتيجتك: {user.get('correct',0)}/{user.get('total',0)}"
     
-    msg += "\n\n🔁 /truefalse - /mcq"
+    msg += "\n\n🔁 /truefalse أو /mcq لسؤال جديد"
     await query.edit_message_text(msg)
 
 async def score(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = str(update.effective_user.id)
-    
-    if user_id not in db.data['students']:
+    user = db.data['students'].get(str(update.effective_user.id))
+    if not user:
         await update.message.reply_text("⚠️ اكتب /start أولاً")
         return
     
-    student = db.data['students'][user_id]
-    total = student['total']
-    correct = student['correct']
+    total, correct = user['total'], user['correct']
     percent = (correct/total*100) if total > 0 else 0
     
-    report = f"""
-📊 تقرير أدائك:
-
-✅ الإجابات الصحيحة: {correct}
-❌ الإجابات الخاطئة: {total - correct}
-📝 إجمالي الأسئلة: {total}
-🎯 النسبة: {percent:.1f}%
-
-📅 انضممت: {student['joined']}
-"""
-    
-    if percent >= 80:
-        report += "\n🏆 ممتاز! مستواك رائع"
-    elif percent >= 60:
-        report += "\n⭐ جيد جداً! واصل التقدم"
-    elif percent >= 40:
-        report += "\n💪 مستوى مقبول، تدرب أكثر"
-    else:
-        report += "\n📚 راجع الأساسيات وتدرب"
-    
+    report = f"📊 نتيجتك:\n✅ {correct} صحيح\n❌ {total-correct} خطأ\n🎯 {percent:.1f}%\n📅 {user['joined']}"
     await update.message.reply_text(report)
 
 async def top(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not db.data['students']:
-        await update.message.reply_text("🏆 لا توجد نتائج بعد!")
+        await update.message.reply_text("🏆 لا توجد نتائج!")
         return
     
     rankings = []
-    for user_id, student in db.data['students'].items():
-        if student['total'] >= 3:
-            percent = (student['correct']/student['total']*100)
-            rankings.append((student['name'], percent, student['correct'], student['total']))
+    for uid, stu in db.data['students'].items():
+        if stu['total'] > 0:
+            percent = (stu['correct']/stu['total']*100)
+            rankings.append((stu['name'], percent, stu['correct'], stu['total']))
     
     if not rankings:
-        await update.message.reply_text("🏆 لم يكمل أحد 3 أسئلة بعد!")
+        await update.message.reply_text("🏆 لم يجب أحد بعد!")
         return
     
     rankings.sort(key=lambda x: x[1], reverse=True)
     
     text = "🏆 المتصدرون:\n\n"
-    medals = ["🥇", "🥈", "🥉", "🎖️", "🎖️"]
-    
-    for i, (name, percent, correct, total) in enumerate(rankings[:5]):
-        medal = medals[i] if i < len(medals) else "🔸"
-        text += f"{medal} {name}: {percent:.1f}% ({correct}/{total})\n"
+    medals = ["🥇", "🥈", "🥉"]
+    for i, (name, perc, cor, tot) in enumerate(rankings[:5]):
+        medal = medals[i] if i < len(medals) else "🎖️"
+        text += f"{medal} {name}: {perc:.1f}% ({cor}/{tot})\n"
     
     await update.message.reply_text(text)
 
@@ -348,31 +176,27 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("🔒 للمعلم فقط!")
         return
     
-    total_students = len(db.data['students'])
+    total_stu = len(db.data['students'])
     active = sum(1 for s in db.data['students'].values() if s['total'] > 0)
-    total_q = db.data['questions']
-    total_correct = db.data['correct']
-    percent = (total_correct/total_q*100) if total_q > 0 else 0
+    total_q = db.data['total']
+    total_cor = db.data['correct']
+    percent = (total_cor/total_q*100) if total_q > 0 else 0
     
-    stats_text = f"""
-👨🏫 إحصائيات المعلم:
-
-👥 الطلاب: {total_students}
+    stats_text = f"""👨🏫 إحصائيات:
+👥 الطلاب: {total_stu}
 🎯 النشطين: {active}
 📝 الأسئلة: {total_q}
-✅ الصحيحة: {total_correct}
-📈 النسبة: {percent:.1f}%
-"""
+✅ الصحيحة: {total_cor}
+📈 النسبة: {percent:.1f}%"""
+    
     await update.message.reply_text(stats_text)
 
 async def main():
     print("🧮 بوت اختبارات النهايات يعمل...")
-    print("📱 اذهب إلى Telegram وابحث عن بوتك")
+    print("📱 اذهب لـ Telegram وابحث عن بوتك")
     
     app = Application.builder().token(TOKEN).build()
-    
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("help", help))
     app.add_handler(CommandHandler("truefalse", truefalse))
     app.add_handler(CommandHandler("mcq", mcq))
     app.add_handler(CommandHandler("score", score))
@@ -384,4 +208,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-  Add bot.py
