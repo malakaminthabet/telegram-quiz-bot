@@ -10,10 +10,10 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 # 🔐 التوكن من متغيرات البيئة (سأضيفه في Render لاحقاً)
-TOKEN = os.environ.get('TELEGRAM_TOKEN', 'ضع_توكن_بوتك_هنا')
+TOKEN = os.environ.get('TELEGRAM_TOKEN', '8541804759:AAEb2NnuZoCxDalpgdsGUgaoEcwctj7DYaw')
 
 # 👨🏫 رقم المعلم (غير هذا الرقم!)
-TEACHER_ID = 123456789
+TEACHER_ID = 8422436251
 
 # 📊 قاعدة البيانات البسيطة
 class Database:
