@@ -15,7 +15,7 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler, Cont
 
 # 🔐 التوكن من متغيرات البيئة
 TOKEN = os.environ.get('TELEGRAM_TOKEN')
-TEACHER_ID = 123456789  # غير هذا الرقم!
+TEACHER_ID = 8422436251  # غير هذا الرقم!
 
 # 🌐 Flask لإبقاء البوت نشطاً
 app = Flask(__name__)
