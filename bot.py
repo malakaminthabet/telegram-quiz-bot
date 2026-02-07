@@ -1,5 +1,6 @@
-# 🧮 بوت اختبارات رياضيات النهايات - بدون تضارب
-# 🔧 يعمل 24/7 على Render
+# 🧮 بوت اختبارات رياضيات النهايات - واجهة محسنة
+# 🎨 تصميم عربي جميل مع رسائل تحفيزية
+# 👨🏫 واجهة سهلة لإضافة الأسئلة للمعلم
 
 import os
 import asyncio
@@ -16,7 +17,7 @@ from telegram.error import Conflict
 
 # 🔐 التوكن من متغيرات البيئة
 TOKEN = os.environ.get('TELEGRAM_TOKEN')
-TEACHER_ID = 8422436251  # غير هذا الرقم!
+TEACHER_ID = 8422436251  # ❗ غير هذا الرقم إلى ID الخاص بك!
 
 # 🌐 Flask لإبقاء البوت نشطاً
 app = Flask(__name__)
@@ -26,19 +27,131 @@ def home():
     return """
     <html>
         <head>
-            <title>بوت الرياضيات</title>
+            <title>بوت الرياضيات التفاعلي</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
-                body { font-family: Arial; text-align: center; padding: 50px; }
-                h1 { color: #2c3e50; }
-                .status { color: #27ae60; font-size: 24px; }
+                body { 
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                    text-align: center; 
+                    padding: 50px; 
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    margin: 0;
+                }
+                .container { 
+                    max-width: 800px; 
+                    margin: 0 auto; 
+                    background: rgba(255, 255, 255, 0.95); 
+                    padding: 40px; 
+                    border-radius: 20px; 
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                }
+                h1 { 
+                    color: #2c3e50; 
+                    font-size: 2.5em; 
+                    margin-bottom: 20px;
+                    background: linear-gradient(to right, #667eea, #764ba2);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+                .emoji { font-size: 3em; margin: 20px; }
+                .status { 
+                    color: #27ae60; 
+                    font-size: 28px; 
+                    font-weight: bold;
+                    padding: 15px;
+                    background: #e8f5e9;
+                    border-radius: 10px;
+                    margin: 20px 0;
+                }
+                .features { 
+                    display: grid; 
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+                    gap: 20px; 
+                    margin: 40px 0; 
+                }
+                .feature-card { 
+                    background: white; 
+                    padding: 20px; 
+                    border-radius: 15px; 
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+                    transition: transform 0.3s;
+                }
+                .feature-card:hover { transform: translateY(-5px); }
+                .feature-card h3 { color: #2c3e50; margin-bottom: 10px; }
+                .feature-card p { color: #7f8c8d; }
+                .btn { 
+                    display: inline-block; 
+                    padding: 12px 30px; 
+                    margin: 10px; 
+                    background: linear-gradient(to right, #667eea, #764ba2);
+                    color: white; 
+                    text-decoration: none; 
+                    border-radius: 25px; 
+                    font-weight: bold;
+                    transition: all 0.3s;
+                }
+                .btn:hover { 
+                    transform: scale(1.05); 
+                    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+                }
+                .stats { 
+                    background: #f8f9fa; 
+                    padding: 20px; 
+                    border-radius: 15px; 
+                    margin-top: 30px;
+                    color: #2c3e50;
+                }
             </style>
         </head>
         <body>
-            <h1>🤖 بوت اختبارات الرياضيات</h1>
-            <div class="status">✅ يعمل بنجاح!</div>
-            <p>⏰ يعمل 24/7 على Render</p>
-            <p>👨🏫 للمعلم: استخدم /add_question لإضافة أسئلة جديدة</p>
-            <p>📱 للطلاب: ابحث عن @mathimatical_testBot</p>
+            <div class="container">
+                <div class="emoji">🧮🤖✨</div>
+                <h1>بوت اختبارات الرياضيات التفاعلي</h1>
+                <div class="status">✅ البوت يعمل بنجاح!</div>
+                
+                <div class="features">
+                    <div class="feature-card">
+                        <h3>🎯 للطلاب</h3>
+                        <p>اختبارات تفاعلية في النهايات</p>
+                        <p>نتائج فورية وتصحيح آلي</p>
+                        <p>تصنيفات وتحفيز مستمر</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>👨🏫 للمعلمين</h3>
+                        <p>إدارة أسئلة سهلة وسريعة</p>
+                        <p>إحصائيات مفصلة</p>
+                        <p>متابعة مستوى الطلاب</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>⚡ مميزات</h3>
+                        <p>يعمل 24/7</p>
+                        <p>واجهة عربية سلسة</p>
+                        <p>أسئلة متنوعة</p>
+                    </div>
+                </div>
+                
+                <div style="margin: 40px 0;">
+                    <p style="color: #2c3e50; font-size: 1.1em;">
+                        📱 للطلاب: ابحث عن <strong>@mathimatical_testBot</strong> في التليجرام<br>
+                        👨🏫 للمعلم: استخدم أوامر خاصة لإدارة الأسئلة
+                    </p>
+                </div>
+                
+                <div class="stats">
+                    <h3>📊 البوت يعمل الآن على:</h3>
+                    <p>🌐 <strong>https://telegram-quiz-bot-7.onrender.com</strong></p>
+                    <p>🕐 آخر تحديث: <span id="time"></span></p>
+                </div>
+            </div>
+            
+            <script>
+                document.getElementById('time').textContent = new Date().toLocaleString('ar-SA');
+                setInterval(() => {
+                    document.getElementById('time').textContent = new Date().toLocaleString('ar-SA');
+                }, 1000);
+            </script>
         </body>
     </html>
     """
@@ -51,13 +164,37 @@ def health():
 def ping():
     return "pong"
 
+# 🌟 رسائل تحفيزية للطلاب
+ENCOURAGEMENTS = [
+    "🔥 مذهل! أنت تفهم الموضوع بشكل رائع!",
+    "🚀 إجابة صحيحة! استمر في التقدم!",
+    "💪 رائع! مهاراتك الرياضية ممتازة!",
+    "⭐ نجاح باهر! هذا مستوى متميز!",
+    "🎯 دقة عالية! أنت على الطريق الصحيح!",
+    "✨ إبداع! طريقة تفكيرك رائعة!",
+    "🏆 إجابة مثالية! أنت تتفوق على نفسك!",
+    "📈 تقدم مذهل! استمر في التعلم!",
+    "💫 مهارة خارقة! النهايات ليست صعبة عليك!",
+    "👑 تفوق! أنت من صناع النجاح!",
+]
+
+REMINDERS = [
+    "💡 تذكر: النهايات هي أساس التفاضل والتكامل!",
+    "📚 الممارسة المستمرة هي سر التميز في الرياضيات!",
+    "🎓 كل سؤال تحله يقربك أكثر من الإتقان!",
+    "⚡ لا تستسلم، الرياضيات تحتاج إلى صبر ومثابرة!",
+    "🌟 أنت قادر على فهم أصعب النهايات!",
+]
+
 # 📊 قاعدة البيانات
 class Database:
     def __init__(self):
         self.data_file = 'data.json'
         self.questions_file = 'questions.json'
+        self.streaks_file = 'streaks.json'
         self.data = self.load_data()
         self.questions = self.load_questions()
+        self.streaks = self.load_streaks()
     
     def load_data(self):
         try:
@@ -85,6 +222,13 @@ class Database:
             self.save_questions(default_questions)
             return default_questions
     
+    def load_streaks(self):
+        try:
+            with open(self.streaks_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            return {}
+    
     def save_data(self):
         with open(self.data_file, 'w', encoding='utf-8') as f:
             json.dump(self.data, f, ensure_ascii=False, indent=2)
@@ -95,6 +239,10 @@ class Database:
         with open(self.questions_file, 'w', encoding='utf-8') as f:
             json.dump(questions, f, ensure_ascii=False, indent=2)
     
+    def save_streaks(self):
+        with open(self.streaks_file, 'w', encoding='utf-8') as f:
+            json.dump(self.streaks, f, ensure_ascii=False, indent=2)
+    
     def register_student(self, user_id, name):
         user_id = str(user_id)
         if user_id not in self.data['students']:
@@ -103,7 +251,10 @@ class Database:
                 'correct': 0,
                 'total': 0,
                 'joined': datetime.now().strftime('%Y-%m-%d'),
-                'last_active': datetime.now().isoformat()
+                'last_active': datetime.now().isoformat(),
+                'level': 1,
+                'xp': 0,
+                'streak': 0
             }
             self.save_data()
             return True
@@ -112,374 +263,615 @@ class Database:
     def update_score(self, user_id, is_correct):
         user_id = str(user_id)
         if user_id in self.data['students']:
-            self.data['students'][user_id]['total'] += 1
-            self.data['students'][user_id]['last_active'] = datetime.now().isoformat()
+            student = self.data['students'][user_id]
+            student['total'] += 1
+            student['last_active'] = datetime.now().isoformat()
             
             if is_correct:
-                self.data['students'][user_id]['correct'] += 1
+                student['correct'] += 1
+                student['xp'] += 10
+                student['streak'] = student.get('streak', 0) + 1
+                
+                # مكافآت streak
+                if student['streak'] % 5 == 0:
+                    student['xp'] += 25
+                
+                # ترقية المستوى
+                if student['xp'] >= student['level'] * 100:
+                    student['level'] += 1
+                    student['xp'] = 0
+            else:
+                student['streak'] = 0
             
             self.data['total_questions'] += 1
             if is_correct:
                 self.data['correct_answers'] += 1
             
             self.save_data()
-            return self.data['students'][user_id]
+            return student
     
-    def add_true_false_question(self, question, answer, explanation):
-        new_id = max([q['id'] for q in self.questions['true_false']], default=0) + 1
-        self.questions['true_false'].append({
-            "id": new_id,
-            "q": question,
-            "ans": answer,
-            "exp": explanation
-        })
-        self.save_questions()
-        return new_id
+    def get_encouragement(self):
+        return random.choice(ENCOURAGEMENTS)
     
-    def add_mcq_question(self, question, options, answer, explanation):
-        new_id = max([q['id'] for q in self.questions['mcq']], default=0) + 1
-        self.questions['mcq'].append({
-            "id": new_id,
-            "q": question,
-            "ops": options,
-            "ans": answer,
-            "exp": explanation
-        })
-        self.save_questions()
-        return new_id
+    def get_reminder(self):
+        return random.choice(REMINDERS)
+    
+    def get_streak_message(self, streak):
+        if streak >= 10:
+            return f"🔥🔥🔥 سلسلة إجابات صحيحة: {streak}! أنت لا تخطئ!"
+        elif streak >= 5:
+            return f"🔥🔥 سلسلة إجابات صحيحة: {streak}! استمر هكذا!"
+        elif streak >= 3:
+            return f"🔥 سلسلة إجابات صحيحة: {streak}! ممتاز!"
+        return ""
 
 db = Database()
 
-# 🎯 دوال البوت الأساسية
+# 🎨 وظائف مساعدة للتصميم
+def create_menu_buttons():
+    """إنشاء أزرار القائمة الرئيسية"""
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("📝 اختبر نفسك", callback_data="start_quiz"),
+            InlineKeyboardButton("📊 نتيجتي", callback_data="my_score")
+        ],
+        [
+            InlineKeyboardButton("🏆 المتصدرين", callback_data="leaderboard"),
+            InlineKeyboardButton("⚙️ الإعدادات", callback_data="settings")
+        ]
+    ])
+
+def create_quiz_type_buttons():
+    """إنشاء أزرار أنواع الاختبارات"""
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("🔵 صح/خطأ", callback_data="quiz_tf"),
+            InlineKeyboardButton("🔴 اختيار من متعدد", callback_data="quiz_mcq")
+        ],
+        [
+            InlineKeyboardButton("📋 مختلط", callback_data="quiz_mixed"),
+            InlineKeyboardButton("🏃🏻 اختبار سريع", callback_data="quiz_quick")
+        ],
+        [
+            InlineKeyboardButton("🔙 رجوع", callback_data="main_menu")
+        ]
+    ])
+
+def create_teacher_menu():
+    """إنشاء قائمة المعلم"""
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("➕ أضف سؤالاً", callback_data="teacher_add"),
+            InlineKeyboardButton("👁️ عرض الأسئلة", callback_data="teacher_view")
+        ],
+        [
+            InlineKeyboardButton("📊 الإحصائيات", callback_data="teacher_stats"),
+            InlineKeyboardButton("🗑️ حذف أسئلة", callback_data="teacher_delete")
+        ],
+        [
+            InlineKeyboardButton("🔙 القائمة الرئيسية", callback_data="main_menu")
+        ]
+    ])
+
+def format_question_box(question, q_type="🔵"):
+    """تنسيق مربع السؤال"""
+    border = "━" * 30
+    return f"""
+{border}
+{q_type} الســـؤال
+{border}
+
+📝 {question}
+
+{border}
+    """
+
+def format_answer_box(is_correct, message):
+    """تنسيق مربع الإجابة"""
+    if is_correct:
+        border = "━" * 30
+        return f"""
+{border}
+✅ الإجـابـة الصـحـيـحـة
+{border}
+
+✨ {message}
+
+{border}
+        """
+    else:
+        border = "━" * 30
+        return f"""
+{border}
+❌ إجـابـة خـاطـئـة
+{border}
+
+💡 {message}
+
+{border}
+        """
+
+# 🎯 دوال البوت الرئيسية
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     is_new = db.register_student(user.id, user.first_name)
     
+    welcome_msg = f"""
+✨✨✨✨✨✨✨✨✨✨✨✨
+       مــرحــبــاً {user.first_name}!
+✨✨✨✨✨✨✨✨✨✨✨✨
+
+🎯 **بوت اختبارات النهايات التفاعلي**
+
+📚 اختبر مهاراتك في النهايات
+⚡ احصل على تقييم فوري
+🏆 تقدم في التصنيفات
+    """
+    
     if is_new:
-        msg = f"🎉 أهلاً {user.first_name}!\nتم تسجيلك في بوت اختبارات النهايات."
+        welcome_msg += f"\n🎉 **تم تسجيلك بنجاح في النظام!**"
     else:
         student = db.data['students'].get(str(user.id), {})
-        msg = f"👋 أهلًا بعودتك {user.first_name}!\nنتيجتك: {student.get('correct', 0)}/{student.get('total', 0)}"
+        welcome_msg += f"\n👋 **أهلًا بعودتك!**"
+        welcome_msg += f"\n📊 مستواك: {student.get('level', 1)} ⭐"
+        welcome_msg += f"\n🎯 نتيجتك: {student.get('correct', 0)}/{student.get('total', 0)}"
     
-    msg += "\n\n📋 الأوامر:\n/start - البداية\n/truefalse - أسئلة صح/خطأ\n/mcq - أسئلة خيارات\n/score - نتيجتك"
+    welcome_msg += f"\n\n{db.get_reminder()}"
     
     if user.id == TEACHER_ID:
-        msg += "\n\n👨🏫 أوامر المعلم:\n/add_question - إضافة سؤال جديد\n/view_questions - عرض الأسئلة"
+        welcome_msg += "\n\n👨🏫 **أنت مسجل كمدرس** - يمكنك إدارة الأسئلة"
     
-    await update.message.reply_text(msg)
+    await update.message.reply_text(
+        welcome_msg,
+        reply_markup=create_menu_buttons()
+    )
 
-async def truefalse_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    data = query.data
+    
+    if data == "main_menu":
+        user = query.from_user
+        msg = f"""
+📋 **القائمة الرئيسية**
+
+اختر أحد الخيارات:
+        """
+        await query.edit_message_text(
+            msg,
+            reply_markup=create_menu_buttons()
+        )
+    
+    elif data == "start_quiz":
+        msg = """
+🎯 **اختر نوع الاختبار**
+
+🔵 **صح/خطأ**: اختبر فهمك للمفاهيم
+🔴 **اختيار من متعدد**: تدرب على الحلول
+📋 **مختلط**: مزيج من الأنواع
+🏃🏻 **سريع**: 5 أسئلة في دقيقة
+        """
+        await query.edit_message_text(
+            msg,
+            reply_markup=create_quiz_type_buttons()
+        )
+    
+    elif data == "quiz_tf":
+        await truefalse_quiz(update, context)
+    
+    elif data == "quiz_mcq":
+        await mcq_quiz(update, context)
+    
+    elif data == "my_score":
+        await show_score(update, context)
+    
+    elif data == "teacher_menu":
+        if query.from_user.id == TEACHER_ID:
+            msg = """
+👨🏫 **لوحة تحكم المعلم**
+
+اختر المهمة التي تريد تنفيذها:
+            """
+            await query.edit_message_text(
+                msg,
+                reply_markup=create_teacher_menu()
+            )
+        else:
+            await query.edit_message_text("❌ هذا القسم للمعلمين فقط!")
+
+async def truefalse_quiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
     if not db.questions['true_false']:
-        await update.message.reply_text("⚠️ لا توجد أسئلة صح/خطأ متاحة حالياً.")
+        await query.edit_message_text("⚠️ لا توجد أسئلة صح/خطأ متاحة حالياً.")
         return
     
     q = random.choice(db.questions['true_false'])
-    buttons = [
-        [InlineKeyboardButton("✅ صحيح", callback_data=f"tf_{q['id']}_true")],
-        [InlineKeyboardButton("❌ خطأ", callback_data=f"tf_{q['id']}_false")]
-    ]
-    text = f"🔵 سؤال صح/خطأ:\n\n❓ {q['q']}"
-    await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(buttons))
+    
+    buttons = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("✅ صحيح", callback_data=f"answer_tf_{q['id']}_true"),
+            InlineKeyboardButton("❌ خطأ", callback_data=f"answer_tf_{q['id']}_false")
+        ],
+        [
+            InlineKeyboardButton("🔙 رجوع", callback_data="start_quiz")
+        ]
+    ])
+    
+    question_text = format_question_box(q['q'], "🔵 سؤال صح/خطأ")
+    await query.edit_message_text(
+        question_text,
+        reply_markup=buttons
+    )
 
-async def mcq_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def mcq_quiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
     if not db.questions['mcq']:
-        await update.message.reply_text("⚠️ لا توجد أسئلة اختيار من متعدد متاحة حالياً.")
+        await query.edit_message_text("⚠️ لا توجد أسئلة اختيار من متعدد متاحة حالياً.")
         return
     
     q = random.choice(db.questions['mcq'])
+    
     buttons = []
-    letters = ['أ', 'ب', 'ج', 'د']
+    letters = ['أ', 'ب', 'ج', 'د', 'ه', 'و']
     for i, option in enumerate(q['ops']):
-        buttons.append([InlineKeyboardButton(f"{letters[i]}. {option}", callback_data=f"mcq_{q['id']}_{i}")])
-    text = f"🔴 سؤال خيارات:\n\n❓ {q['q']}"
-    await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(buttons))
+        buttons.append([
+            InlineKeyboardButton(
+                f"{letters[i]}. {option}",
+                callback_data=f"answer_mcq_{q['id']}_{i}"
+            )
+        ])
+    
+    buttons.append([
+        InlineKeyboardButton("🔙 رجوع", callback_data="start_quiz")
+    ])
+    
+    question_text = format_question_box(q['q'], "🔴 سؤال اختيار من متعدد")
+    await query.edit_message_text(
+        question_text,
+        reply_markup=InlineKeyboardMarkup(buttons)
+    )
 
 async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
     data = query.data.split('_')
-    q_type, q_id, answer = data[0], int(data[1]), data[2]
+    q_type, q_id, answer = data[1], int(data[2]), data[3]
     
-    if q_type == 'tf':
+    if q_type == "tf":
         q = next((q for q in db.questions['true_false'] if q['id'] == q_id), None)
         if q:
             is_correct = ((answer == 'true') == q['ans'])
-            msg = f"✅ صحيح!\n\n{q['exp']}" if is_correct else f"❌ خطأ!\n\n{q['exp']}"
-            db.update_score(query.from_user.id, is_correct)
+            explanation = q['exp']
+            student = db.update_score(query.from_user.id, is_correct)
     
-    elif q_type == 'mcq':
+    elif q_type == "mcq":
         q = next((q for q in db.questions['mcq'] if q['id'] == q_id), None)
         if q:
             is_correct = (int(answer) == q['ans'])
-            letters = ['أ', 'ب', 'ج', 'د']
+            letters = ['أ', 'ب', 'ج', 'د', 'ه', 'و']
             if is_correct:
-                msg = f"✅ إجابة صحيحة!\n\n{q['exp']}"
+                explanation = q['exp']
             else:
-                correct = letters[q['ans']]
-                msg = f"❌ إجابة خاطئة!\nالصحيحة: {correct}\n\n{q['exp']}"
-            db.update_score(query.from_user.id, is_correct)
+                correct_letter = letters[q['ans']]
+                explanation = f"الإجابة الصحيحة: {correct_letter}\n\n{q['exp']}"
+            student = db.update_score(query.from_user.id, is_correct)
     
-    user_id = str(query.from_user.id)
-    if user_id in db.data['students']:
-        student = db.data['students'][user_id]
-        msg += f"\n\n📊 نتيجتك: {student['correct']}/{student['total']}"
+    # إنشاء رسالة النتيجة
+    result_msg = ""
     
-    msg += "\n\n🔁 /truefalse - /mcq"
-    await query.edit_message_text(msg)
-
-async def score_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = str(update.effective_user.id)
-    if user_id not in db.data['students']:
-        await update.message.reply_text("⚠️ اكتب /start أولاً")
-        return
+    if is_correct:
+        result_msg += format_answer_box(True, db.get_encouragement())
+        result_msg += f"\n💡 **شرح الإجابة:**\n{explanation}"
+        
+        # إضافة رسالة streak
+        streak_msg = db.get_streak_message(student.get('streak', 0))
+        if streak_msg:
+            result_msg += f"\n\n{streak_msg}"
+    else:
+        result_msg += format_answer_box(False, "لا تقلق! كل خطوة تعلّمك شيئاً جديداً")
+        result_msg += f"\n💡 **التصحيح:**\n{explanation}"
+        result_msg += f"\n\n{db.get_reminder()}"
     
-    student = db.data['students'][user_id]
-    total, correct = student['total'], student['correct']
-    percent = (correct/total*100) if total > 0 else 0
+    # إضافة الإحصائيات
+    result_msg += f"\n\n📊 **إحصائياتك:**"
+    result_msg += f"\n✅ إجابات صحيحة: {student.get('correct', 0)}"
+    result_msg += f"\n🎯 مستوى: {student.get('level', 1)} ⭐"
+    result_msg += f"\n🔥 نقاط خبرة: {student.get('xp', 0)} XP"
+    result_msg += f"\n📈 نسبة النجاح: {(student.get('correct', 0)/student.get('total', 1)*100):.1f}%"
     
-    report = f"📊 نتيجتك:\n✅ {correct} صحيح\n❌ {total-correct} خطأ\n🎯 {percent:.1f}%\n📅 {student['joined']}"
-    await update.message.reply_text(report)
-
-# 👨🏫 أوامر المعلم المبسطة
-async def add_question_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != TEACHER_ID:
-        await update.message.reply_text("❌ هذا الأمر للمعلم فقط!")
-        return
+    buttons = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("🔄 سؤال آخر", callback_data="start_quiz"),
+            InlineKeyboardButton("📊 نتيجتي", callback_data="my_score")
+        ],
+        [
+            InlineKeyboardButton("📋 القائمة الرئيسية", callback_data="main_menu")
+        ]
+    ])
     
-    buttons = [
-        [InlineKeyboardButton("📝 صح/خطأ", callback_data="add_tf")],
-        [InlineKeyboardButton("🔠 اختيار من متعدد", callback_data="add_mcq")],
-    ]
-    
-    await update.message.reply_text(
-        "👨🏫 اختر نوع السؤال الذي تريد إضافته:",
-        reply_markup=InlineKeyboardMarkup(buttons)
+    await query.edit_message_text(
+        result_msg,
+        reply_markup=buttons
     )
 
-async def view_questions_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != TEACHER_ID:
-        await update.message.reply_text("❌ هذا الأمر للمعلم فقط!")
-        return
-    
-    tf_count = len(db.questions['true_false'])
-    mcq_count = len(db.questions['mcq'])
-    
-    message = f"📚 ملخص الأسئلة:\n\n"
-    message += f"📝 أسئلة صح/خطأ: {tf_count}\n"
-    message += f"🔠 أسئلة اختيار من متعدد: {mcq_count}\n\n"
-    
-    if tf_count > 0:
-        message += "📝 آخر سؤال صح/خطأ:\n"
-        last_q = db.questions['true_false'][-1]
-        answer = "✅ صحيح" if last_q['ans'] else "❌ خطأ"
-        message += f"{last_q['q']}\n({answer})\n\n"
-    
-    if mcq_count > 0:
-        message += "🔠 آخر سؤال اختيار:\n"
-        last_q = db.questions['mcq'][-1]
-        message += f"{last_q['q']}\n"
-    
-    await update.message.reply_text(message)
-
-async def handle_teacher_actions(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def show_score(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
-    data = query.data
+    user_id = str(query.from_user.id)
+    if user_id not in db.data['students']:
+        await query.edit_message_text("⚠️ ابدأ أولاً باستخدام /start")
+        return
     
-    if data == "add_tf":
-        context.user_data['adding_question'] = {'type': 'tf', 'step': 'question'}
-        await query.edit_message_text(
-            "📝 أرسل نص سؤال الصح/خطأ:\n\n"
-            "مثال: lim┬(x→0)〖sin(x)/x = 1〗"
-        )
+    student = db.data['students'][user_id]
+    total = student.get('total', 0)
+    correct = student.get('correct', 0)
+    level = student.get('level', 1)
+    xp = student.get('xp', 0)
+    streak = student.get('streak', 0)
     
-    elif data == "add_mcq":
-        context.user_data['adding_question'] = {'type': 'mcq', 'step': 'question'}
-        await query.edit_message_text(
-            "🔠 أرسل نص سؤال الاختيار من متعدد:\n\n"
-            "مثال: ما قيمة: lim┬(x→3)〖(x²-9)/(x-3)〗؟"
-        )
+    # حساب التقدم نحو المستوى التالي
+    next_level_xp = level * 100
+    progress = (xp / next_level_xp) * 100 if next_level_xp > 0 else 0
+    
+    # شريط التقدم
+    progress_bar = "[" + "▓" * int(progress/10) + "░" * (10 - int(progress/10)) + "]"
+    
+    score_msg = f"""
+📊 **ملفك الشخصي**
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+👤 **الاسم:** {student.get('name', 'طالب')}
+🎓 **المستوى:** {level} ⭐
+🔥 **نقاط الخبرة:** {xp} / {next_level_xp} XP
+{progress_bar} {progress:.1f}%
+
+🏆 **الإنجازات:**
+✅ إجابات صحيحة: {correct}
+📋 إجمالي الأسئلة: {total}
+🎯 نسبة النجاح: {(correct/total*100):.1f}% if total > 0 else 0
+🔥 سلسلة إجابات صحيحة: {streak}
+
+📅 **تاريخ الانضمام:** {student.get('joined', 'غير معروف')}
+📈 **آخر نشاط:** {datetime.fromisoformat(student.get('last_active')).strftime('%Y-%m-%d %H:%M') if student.get('last_active') else 'غير معروف'}
+    """
+    
+    # رسالة تحفيزية بناءً على النسبة
+    if total > 0:
+        percentage = (correct/total*100)
+        if percentage >= 80:
+            score_msg += "\n\n🏅 **ممتاز!** أنت تتفوق في النهايات!"
+        elif percentage >= 60:
+            score_msg += "\n\n💪 **جيد جداً!** استمر في الممارسة!"
+        else:
+            score_msg += "\n\n📚 **جيد!** المزيد من التدريب سيجعلك متميزاً!"
+    
+    buttons = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("🎯 اختبر نفسك", callback_data="start_quiz"),
+            InlineKeyboardButton("🏆 المتصدرين", callback_data="leaderboard")
+        ],
+        [
+            InlineKeyboardButton("🔙 القائمة الرئيسية", callback_data="main_menu")
+        ]
+    ])
+    
+    await query.edit_message_text(
+        score_msg,
+        reply_markup=buttons
+    )
+
+# 👨🏫 واجهة المعلم السهلة
+async def teacher_add_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """بدء عملية إضافة سؤال بطريقة سهلة"""
+    query = update.callback_query
+    await query.answer()
+    
+    msg = """
+👨🏫 **إضافة سؤال جديد**
+
+📝 **طريقة سهلة:**
+أرسل السؤال كاملاً في رسالة واحدة بهذا الشكل:
+
+🔵 **للسؤال صح/خطأ:**
+السؤال | الجواب (صح/خطأ) | الشرح
+
+مثال:
+lim┬(x→0)〖sin(x)/x = 1〗 | صح | هذه نهاية أساسية
+
+🔴 **لأسئلة الاختيار:**
+السؤال | الخيار1,الخيار2,الخيار3,الخيار4 | رقم الإجابة الصحيحة (0,1,2,3) | الشرح
+
+مثال:
+ما قيمة lim┬(x→3)〖(x²-9)/(x-3)〗؟ | 0,3,6,9 | 2 | (x²-9)/(x-3)=x+3، النهاية=6
+
+📌 **ملاحظات:**
+• استخدم | للفصل بين الأجزاء
+• استخدم , للفصل بين الخيارات
+• رقم الإجابة يبدأ من 0
+    """
+    
+    buttons = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔙 رجوع للمعلم", callback_data="teacher_menu")],
+        [InlineKeyboardButton("📋 القائمة الرئيسية", callback_data="main_menu")]
+    ])
+    
+    await query.edit_message_text(msg, reply_markup=buttons)
+    
+    # حفظ حالة أن المستخدم يريد إضافة سؤال
+    context.user_data['expecting_question'] = True
+
+async def handle_teacher_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """معالجة رسائل المعلم لإضافة الأسئلة"""
     if update.effective_user.id != TEACHER_ID:
         return
     
-    if 'adding_question' not in context.user_data:
+    if not context.user_data.get('expecting_question', False):
         return
     
-    adding = context.user_data['adding_question']
-    text = update.message.text
+    text = update.message.text.strip()
     
-    if adding['type'] == 'tf':
-        if adding['step'] == 'question':
-            context.user_data['tf_question'] = text
-            context.user_data['adding_question']['step'] = 'answer'
-            await update.message.reply_text(
-                "💡 هل الإجابة صحيحة أم خاطئة؟\n\n"
-                "أرسل: 'صح' أو 'خطأ'"
-            )
-        
-        elif adding['step'] == 'answer':
-            if text.lower() in ['صح', 'صحيح', 'true']:
-                answer = True
-            elif text.lower() in ['خطأ', 'خطا', 'false']:
-                answer = False
+    try:
+        # محاولة تحليل السؤال
+        if "|" in text:
+            parts = [p.strip() for p in text.split("|")]
+            
+            if len(parts) >= 3:  # سؤال صح/خطأ
+                question, answer_str, explanation = parts[0], parts[1], parts[2]
+                
+                if answer_str.lower() in ['صح', 'صحيح', 'true', 'نعم']:
+                    answer = True
+                else:
+                    answer = False
+                
+                q_id = db.add_true_false_question(question, answer, explanation)
+                
+                # رسالة النجاح
+                success_msg = f"""
+✅ **تم إضافة السؤال بنجاح!**
+
+📝 **السؤال:** {question}
+✅ **الإجابة:** {'صح' if answer else 'خطأ'}
+📚 **رقم السؤال:** {q_id}
+✨ **الشرح:** {explanation}
+
+يمكنك إضافة المزيد من الأسئلة
+                """
+                
+                # إبقاء حالة إضافة الأسئلة
+                context.user_data['expecting_question'] = True
+                
+            elif len(parts) >= 4:  # سؤال اختيار
+                question, options_str, answer_str, explanation = parts[0], parts[1], parts[2], parts[3]
+                
+                options = [opt.strip() for opt in options_str.split(",") if opt.strip()]
+                answer = int(answer_str.strip())
+                
+                q_id = db.add_mcq_question(question, options, answer, explanation)
+                
+                letters = ['أ', 'ب', 'ج', 'د', 'ه', 'و']
+                correct_letter = letters[answer] if answer < len(letters) else str(answer)
+                
+                success_msg = f"""
+✅ **تم إضافة السؤال بنجاح!**
+
+📝 **السؤال:** {question}
+✅ **الإجابة الصحيحة:** {correct_letter} ({options[answer]})
+📚 **رقم السؤال:** {q_id}
+✨ **الشرح:** {explanation}
+
+يمكنك إضافة المزيد من الأسئلة
+                """
+                
+                # إبقاء حالة إضافة الأسئلة
+                context.user_data['expecting_question'] = True
+                
             else:
-                await update.message.reply_text("⚠️ أرسل 'صح' أو 'خطأ' فقط!")
-                return
-            
-            context.user_data['tf_answer'] = answer
-            context.user_data['adding_question']['step'] = 'explanation'
-            await update.message.reply_text(
-                "📝 أرسل شرح الإجابة:\n\n"
-                "مثال: 'نعم، هذه نهاية أساسية'"
-            )
+                success_msg = "❌ **خطأ في التنسيق**\nاستخدم الشكل الصحيح كما في المثال"
         
-        elif adding['step'] == 'explanation':
-            question = context.user_data['tf_question']
-            answer = context.user_data['tf_answer']
-            explanation = text
-            
-            q_id = db.add_true_false_question(question, answer, explanation)
-            
-            del context.user_data['adding_question']
-            del context.user_data['tf_question']
-            del context.user_data['tf_answer']
-            
-            await update.message.reply_text(
-                f"✅ تم إضافة السؤال بنجاح! (رقم: {q_id})\n"
-                f"يمكنك إضافة المزيد باستخدام /add_question"
-            )
+        else:
+            success_msg = "❌ **خطأ في التنسيق**\nاستخدم | لفصل أجزاء السؤال"
     
-    elif adding['type'] == 'mcq':
-        if adding['step'] == 'question':
-            context.user_data['mcq_question'] = text
-            context.user_data['adding_question']['step'] = 'options'
-            await update.message.reply_text(
-                "🔤 أرسل خيارات الإجابة (مفصولة بفاصلة):\n\n"
-                "مثال: 0, 3, 6, 9"
-            )
-        
-        elif adding['step'] == 'options':
-            options = [opt.strip() for opt in text.split(',') if opt.strip()]
-            if len(options) < 2:
-                await update.message.reply_text("⚠️ أرسل على الأقل خيارين!")
-                return
-            
-            context.user_data['mcq_options'] = options
-            context.user_data['adding_question']['step'] = 'answer'
-            
-            letters = ['أ', 'ب', 'ج', 'د', 'ه', 'و']
-            options_text = "\n".join([f"{letters[i]}. {opt}" for i, opt in enumerate(options[:6])])
-            
-            await update.message.reply_text(
-                f"🔠 اختر رقم الإجابة الصحيحة (بدءاً من 0):\n\n"
-                f"{options_text}\n\n"
-                f"أرسل الرقم فقط (مثال: 2)"
-            )
-        
-        elif adding['step'] == 'answer':
-            try:
-                answer = int(text)
-                options = context.user_data['mcq_options']
-                if answer < 0 or answer >= len(options):
-                    await update.message.reply_text(f"⚠️ الرقم يجب أن يكون بين 0 و {len(options)-1}!")
-                    return
-                
-                context.user_data['mcq_answer'] = answer
-                context.user_data['adding_question']['step'] = 'explanation'
-                await update.message.reply_text(
-                    "📝 أرسل شرح الإجابة:"
-                )
-            except ValueError:
-                await update.message.reply_text("⚠️ أرسل رقماً صحيحاً فقط!")
-        
-        elif adding['step'] == 'explanation':
-            question = context.user_data['mcq_question']
-            options = context.user_data['mcq_options']
-            answer = context.user_data['mcq_answer']
-            explanation = text
-            
-            q_id = db.add_mcq_question(question, options, answer, explanation)
-            
-            del context.user_data['adding_question']
-            del context.user_data['mcq_question']
-            del context.user_data['mcq_options']
-            del context.user_data['mcq_answer']
-            
-            await update.message.reply_text(
-                f"✅ تم إضافة السؤال بنجاح! (رقم: {q_id})\n"
-                f"يمكنك إضافة المزيد باستخدام /add_question"
-            )
-
-# 🔧 تشغيل البوت بطريقة آمنة
-async def main():
-    try:
-        print("=" * 50)
-        print("🧮 بوت اختبارات رياضيات النهايات")
-        print("=" * 50)
-        print(f"📅 بدأ التشغيل: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-        print(f"👥 الطلاب المسجلين: {len(db.data['students'])}")
-        print("✅ البوت يعمل الآن...")
-        print("=" * 50)
-        
-        # إنشاء التطبيق
-        application = Application.builder().token(TOKEN).build()
-        
-        # إضافة Handlers
-        application.add_handler(CommandHandler("start", start_command))
-        application.add_handler(CommandHandler("truefalse", truefalse_command))
-        application.add_handler(CommandHandler("mcq", mcq_command))
-        application.add_handler(CommandHandler("score", score_command))
-        application.add_handler(CommandHandler("add_question", add_question_command))
-        application.add_handler(CommandHandler("view_questions", view_questions_command))
-        
-        application.add_handler(CallbackQueryHandler(handle_answer, pattern="^tf_"))
-        application.add_handler(CallbackQueryHandler(handle_answer, pattern="^mcq_"))
-        application.add_handler(CallbackQueryHandler(handle_teacher_actions, pattern="^add_"))
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-        
-        # البدء
-        await application.initialize()
-        await application.start()
-        
-        print("✅ البوت بدأ التشغيل بنجاح!")
-        
-        # Polling مع معالجة الأخطاء
-        try:
-            await application.updater.start_polling()
-            print("📡 البوت يستمع للرسائل...")
-            
-            # إبقاء البرنامج يعمل
-            while True:
-                await asyncio.sleep(1)
-                
-        except Conflict as e:
-            print(f"⚠️ تحذير: {e}")
-            print("يوجد نسخة أخرى من البوت تعمل. ربما تحتاج لإعادة تشغيل الخدمة على Render.")
-            await application.stop()
-            return
-            
     except Exception as e:
-        print(f"❌ خطأ: {e}")
-
-# 🔧 تشغيل Flask في خيط منفصل
-def run_flask():
-    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False, threaded=True)
-
-# 🚀 نقطة البداية
-if __name__ == "__main__":
-    # تشغيل Flask
-    flask_thread = threading.Thread(target=run_flask, daemon=True)
-    flask_thread.start()
+        success_msg = f"❌ **حدث خطأ**\n{str(e)}\n\nجرب مرة أخرى باستخدام الشكل الصحيح"
     
-    # انتظار ثم تشغيل البوت
-    time.sleep(3)
+    # إرسال رسالة النتيجة
+    buttons = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("➕ أضف سؤالاً آخر", callback_data="teacher_add"),
+            InlineKeyboardButton("📋 القائمة الرئيسية", callback_data="main_menu")
+        ]
+    ])
     
-    # تشغيل البوت
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\n⏹️ إيقاف البوت...")
+    await update.message.reply_text(success_msg, reply_markup=buttons)
+
+async def teacher_view_questions(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """عرض الأسئلة بطريقة منظمة"""
+    query = update.callback_query
+    await query.answer()
+    
+    tf_count = len(db.questions['true_false'])
+    mcq_count = len(db.questions['mcq'])
+    total = tf_count + mcq_count
+    
+    msg = f"""
+📚 **مكتبة الأسئلة**
+
+📊 **الإحصائيات:**
+🔵 أسئلة صح/خطأ: {tf_count}
+🔴 أسئلة اختيار: {mcq_count}
+📋 الإجمالي: {total}
+
+📝 **آخر 3 أسئلة صح/خطأ:**
+"""
+    
+    # عرض آخر 3 أسئلة صح/خطأ
+    for q in db.questions['true_false'][-3:]:
+        answer = "✅ صح" if q['ans'] else "❌ خطأ"
+        msg += f"\n🔹 {q['q'][:50]}... ({answer})"
+    
+    msg += "\n\n🔴 **آخر 3 أسئلة اختيار:**"
+    
+    # عرض آخر 3 أسئلة اختيار
+    for q in db.questions['mcq'][-3:]:
+        msg += f"\n🔸 {q['q'][:50]}..."
+    
+    buttons = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("➕ أضف سؤالاً", callback_data="teacher_add"),
+            InlineKeyboardButton("📊 إحصائيات", callback_data="teacher_stats")
+        ],
+        [
+            InlineKeyboardButton("🔙 رجوع", callback_data="teacher_menu")
+        ]
+    ])
+    
+    await query.edit_message_text(msg, reply_markup=buttons)
+
+async def teacher_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """عرض إحصائيات البوت"""
+    query = update.callback_query
+    await query.answer()
+    
+    total_students = len(db.data['students'])
+    total_questions = db.data.get('total_questions', 0)
+    correct_answers = db.data.get('correct_answers', 0)
+    
+    # حساب متوسط النجاح
+    avg_success = (correct_answers / total_questions * 100) if total_questions > 0 else 0
+    
+    msg = f"""
+📈 **إحصائيات البوت**
+
+👥 **الطلاب:**
+• إجمالي الطلاب: {total_students}
+• نشطين اليوم: {sum(1 for s in db.data['students'].values() if datetime.fromisoformat(s['last_active']).date() == datetime.now().date())}
+
+📊 **الأسئلة:**
+• إجمالي الأسئلة المجابة: {total_questions}
+• الإجابات الصحيحة: {correct_answers}
+• متوسط النجاح: {avg_success:.1f}%
+
+🏆 **أفضل 3 طلاب:**
+"""
+    
+    # ترتيب الطلاب حسب الإجابات الصحيحة
+    sorted_students = sorted(
+        db.data['students'].items(),
+        key=lambda x: x[1].get('correct', 0),
+        reverse=True
+    )[:3]
+    
+    for i, (user_id, student) in enumerate(sorted_students):
+        medal = ["🥇", "🥈", "🥉"][i]
+        msg += f"\n{medal} {student['name']}: {student.get('correct', 0)} صحيح"
+    
+    buttons = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("📚
