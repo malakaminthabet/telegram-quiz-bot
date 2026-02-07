@@ -1,4 +1,4 @@
-# 🧮 بوت اختبارات رياضيات النهايات - مع إدارة الأسئلة للمعلم
+# 🧮 بوت اختبارات رياضيات النهايات - بدون تضارب
 # 🔧 يعمل 24/7 على Render
 
 import os
@@ -12,10 +12,11 @@ from datetime import datetime
 from flask import Flask
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
+from telegram.error import Conflict
 
 # 🔐 التوكن من متغيرات البيئة
 TOKEN = os.environ.get('TELEGRAM_TOKEN')
-TEACHER_ID = 8422436251  # غير هذا الرقم إلى ID الخاص بك
+TEACHER_ID = 8422436251  # غير هذا الرقم!
 
 # 🌐 Flask لإبقاء البوت نشطاً
 app = Flask(__name__)
@@ -50,32 +51,6 @@ def health():
 def ping():
     return "pong"
 
-# 🔄 وظيفة لإرسال طلبات دورية
-def keep_alive():
-    """إبقاء البوت نشطاً بإرسال طلبات دورية"""
-    def ping_server():
-        while True:
-            try:
-                # الحصول على رابط Render تلقائياً
-                render_url = os.environ.get('RENDER_URL', '')
-                if not render_url:
-                    # محاولة تخمين الرابط
-                    service_name = os.environ.get('RENDER_SERVICE_NAME', '')
-                    if service_name:
-                        render_url = f"https://{service_name}.onrender.com"
-                
-                if render_url:
-                    response = requests.get(f"{render_url}/ping", timeout=10)
-                    print(f"✅ Keep-alive ping: {response.status_code} at {datetime.now().strftime('%H:%M:%S')}")
-                else:
-                    print("⚠️ لا يمكن تحديد رابط Render")
-            except Exception as e:
-                print(f"⚠️ Keep-alive failed: {e}")
-            time.sleep(300)  # كل 5 دقائق
-    
-    thread = threading.Thread(target=ping_server, daemon=True)
-    thread.start()
-
 # 📊 قاعدة البيانات
 class Database:
     def __init__(self):
@@ -96,7 +71,6 @@ class Database:
             with open(self.questions_file, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except:
-            # الأسئلة الافتراضية
             default_questions = {
                 'true_false': [
                     {"id": 1, "q": "lim┬(x→0)〖sin(x)/x = 1〗", "ans": True, "exp": "نعم، هذه نهاية أساسية"},
@@ -152,7 +126,6 @@ class Database:
             return self.data['students'][user_id]
     
     def add_true_false_question(self, question, answer, explanation):
-        """إضافة سؤال صح/خطأ جديد"""
         new_id = max([q['id'] for q in self.questions['true_false']], default=0) + 1
         self.questions['true_false'].append({
             "id": new_id,
@@ -164,7 +137,6 @@ class Database:
         return new_id
     
     def add_mcq_question(self, question, options, answer, explanation):
-        """إضافة سؤال اختيار من متعدد جديد"""
         new_id = max([q['id'] for q in self.questions['mcq']], default=0) + 1
         self.questions['mcq'].append({
             "id": new_id,
@@ -175,22 +147,6 @@ class Database:
         })
         self.save_questions()
         return new_id
-    
-    def delete_question(self, q_type, q_id):
-        """حذف سؤال"""
-        q_id = int(q_id)
-        if q_type == 'tf':
-            self.questions['true_false'] = [q for q in self.questions['true_false'] if q['id'] != q_id]
-        elif q_type == 'mcq':
-            self.questions['mcq'] = [q for q in self.questions['mcq'] if q['id'] != q_id]
-        self.save_questions()
-    
-    def get_questions_summary(self):
-        """الحصول على ملخص للأسئلة"""
-        return {
-            'true_false': len(self.questions['true_false']),
-            'mcq': len(self.questions['mcq'])
-        }
 
 db = Database()
 
@@ -205,10 +161,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         student = db.data['students'].get(str(user.id), {})
         msg = f"👋 أهلًا بعودتك {user.first_name}!\nنتيجتك: {student.get('correct', 0)}/{student.get('total', 0)}"
     
-    msg += "\n\n📋 الأوامر:\n/start - البداية\n/truefalse - أسئلة صح/خطأ\n/mcq - أسئلة خيارات\n/score - نتيجتك\n/top - المتصدرين"
+    msg += "\n\n📋 الأوامر:\n/start - البداية\n/truefalse - أسئلة صح/خطأ\n/mcq - أسئلة خيارات\n/score - نتيجتك"
     
     if user.id == TEACHER_ID:
-        msg += "\n\n👨🏫 أوامر المعلم:\n/add_question - إضافة سؤال جديد\n/view_questions - عرض الأسئلة\n/delete_question - حذف سؤال"
+        msg += "\n\n👨🏫 أوامر المعلم:\n/add_question - إضافة سؤال جديد\n/view_questions - عرض الأسئلة"
     
     await update.message.reply_text(msg)
 
@@ -285,9 +241,8 @@ async def score_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     report = f"📊 نتيجتك:\n✅ {correct} صحيح\n❌ {total-correct} خطأ\n🎯 {percent:.1f}%\n📅 {student['joined']}"
     await update.message.reply_text(report)
 
-# 👨🏫 أوامر المعلم
+# 👨🏫 أوامر المعلم المبسطة
 async def add_question_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """بدء عملية إضافة سؤال جديد"""
     if update.effective_user.id != TEACHER_ID:
         await update.message.reply_text("❌ هذا الأمر للمعلم فقط!")
         return
@@ -295,7 +250,6 @@ async def add_question_command(update: Update, context: ContextTypes.DEFAULT_TYP
     buttons = [
         [InlineKeyboardButton("📝 صح/خطأ", callback_data="add_tf")],
         [InlineKeyboardButton("🔠 اختيار من متعدد", callback_data="add_mcq")],
-        [InlineKeyboardButton("❌ إلغاء", callback_data="cancel_add")]
     ]
     
     await update.message.reply_text(
@@ -304,59 +258,31 @@ async def add_question_command(update: Update, context: ContextTypes.DEFAULT_TYP
     )
 
 async def view_questions_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """عرض ملخص الأسئلة"""
     if update.effective_user.id != TEACHER_ID:
         await update.message.reply_text("❌ هذا الأمر للمعلم فقط!")
         return
     
-    summary = db.get_questions_summary()
-    tf_questions = db.questions['true_false']
-    mcq_questions = db.questions['mcq']
+    tf_count = len(db.questions['true_false'])
+    mcq_count = len(db.questions['mcq'])
     
     message = f"📚 ملخص الأسئلة:\n\n"
-    message += f"📝 أسئلة صح/خطأ: {summary['true_false']}\n"
-    message += f"🔠 أسئلة اختيار من متعدد: {summary['mcq']}\n\n"
+    message += f"📝 أسئلة صح/خطأ: {tf_count}\n"
+    message += f"🔠 أسئلة اختيار من متعدد: {mcq_count}\n\n"
     
-    if tf_questions:
-        message += "📝 أسئلة صح/خطأ:\n"
-        for q in tf_questions[:5]:  # عرض أول 5 أسئلة فقط
-            answer = "✅ صحيح" if q['ans'] else "❌ خطأ"
-            message += f"{q['id']}. {q['q'][:50]}... ({answer})\n"
+    if tf_count > 0:
+        message += "📝 آخر سؤال صح/خطأ:\n"
+        last_q = db.questions['true_false'][-1]
+        answer = "✅ صحيح" if last_q['ans'] else "❌ خطأ"
+        message += f"{last_q['q']}\n({answer})\n\n"
     
-    if mcq_questions:
-        message += "\n🔠 أسئلة اختيار من متعدد:\n"
-        for q in mcq_questions[:5]:  # عرض أول 5 أسئلة فقط
-            message += f"{q['id']}. {q['q'][:50]}...\n"
+    if mcq_count > 0:
+        message += "🔠 آخر سؤال اختيار:\n"
+        last_q = db.questions['mcq'][-1]
+        message += f"{last_q['q']}\n"
     
     await update.message.reply_text(message)
 
-async def delete_question_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """بدء عملية حذف سؤال"""
-    if update.effective_user.id != TEACHER_ID:
-        await update.message.reply_text("❌ هذا الأمر للمعلم فقط!")
-        return
-    
-    summary = db.get_questions_summary()
-    
-    buttons = []
-    if summary['true_false'] > 0:
-        buttons.append([InlineKeyboardButton(f"📝 حذف سؤال صح/خطأ ({summary['true_false']})", callback_data="delete_tf")])
-    if summary['mcq'] > 0:
-        buttons.append([InlineKeyboardButton(f"🔠 حذف سؤال اختيار ({summary['mcq']})", callback_data="delete_mcq")])
-    
-    if not buttons:
-        await update.message.reply_text("⚠️ لا توجد أسئلة للحذف!")
-        return
-    
-    buttons.append([InlineKeyboardButton("❌ إلغاء", callback_data="cancel_delete")])
-    
-    await update.message.reply_text(
-        "🗑️ اختر نوع السؤال الذي تريد حذفه:",
-        reply_markup=InlineKeyboardMarkup(buttons)
-    )
-
 async def handle_teacher_actions(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """معالجة إجراءات المعلم"""
     query = update.callback_query
     await query.answer()
     
@@ -375,54 +301,8 @@ async def handle_teacher_actions(update: Update, context: ContextTypes.DEFAULT_T
             "🔠 أرسل نص سؤال الاختيار من متعدد:\n\n"
             "مثال: ما قيمة: lim┬(x→3)〖(x²-9)/(x-3)〗؟"
         )
-    
-    elif data.startswith("delete_tf"):
-        if data == "delete_tf":
-            # عرض قائمة أسئلة الصح/خطأ للحذف
-            tf_questions = db.questions['true_false']
-            buttons = []
-            for q in tf_questions:
-                buttons.append([InlineKeyboardButton(
-                    f"🗑️ {q['id']}. {q['q'][:30]}...",
-                    callback_data=f"confirm_delete_tf_{q['id']}"
-                )])
-            buttons.append([InlineKeyboardButton("❌ إلغاء", callback_data="cancel_delete")])
-            
-            await query.edit_message_text(
-                "اختر السؤال الذي تريد حذفه:",
-                reply_markup=InlineKeyboardMarkup(buttons)
-            )
-        elif data.startswith("confirm_delete_tf_"):
-            q_id = data.split('_')[-1]
-            db.delete_question('tf', q_id)
-            await query.edit_message_text(f"✅ تم حذف السؤال رقم {q_id} بنجاح!")
-    
-    elif data.startswith("delete_mcq"):
-        if data == "delete_mcq":
-            # عرض قائمة أسئلة الاختيار للحذف
-            mcq_questions = db.questions['mcq']
-            buttons = []
-            for q in mcq_questions:
-                buttons.append([InlineKeyboardButton(
-                    f"🗑️ {q['id']}. {q['q'][:30]}...",
-                    callback_data=f"confirm_delete_mcq_{q['id']}"
-                )])
-            buttons.append([InlineKeyboardButton("❌ إلغاء", callback_data="cancel_delete")])
-            
-            await query.edit_message_text(
-                "اختر السؤال الذي تريد حذفه:",
-                reply_markup=InlineKeyboardMarkup(buttons)
-            )
-        elif data.startswith("confirm_delete_mcq_"):
-            q_id = data.split('_')[-1]
-            db.delete_question('mcq', q_id)
-            await query.edit_message_text(f"✅ تم حذف السؤال رقم {q_id} بنجاح!")
-    
-    elif data == "cancel_add" or data == "cancel_delete":
-        await query.edit_message_text("❌ تم الإلغاء.")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """معالجة الرسائل النصية لإضافة الأسئلة"""
     if update.effective_user.id != TEACHER_ID:
         return
     
@@ -464,16 +344,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
             q_id = db.add_true_false_question(question, answer, explanation)
             
-            # تنظيف البيانات المؤقتة
             del context.user_data['adding_question']
             del context.user_data['tf_question']
             del context.user_data['tf_answer']
             
             await update.message.reply_text(
-                f"✅ تم إضافة السؤال بنجاح!\n\n"
-                f"📝 السؤال: {question}\n"
-                f"✅ الإجابة: {'صحيح' if answer else 'خطأ'}\n"
-                f"📚 رقم السؤال: {q_id}\n\n"
+                f"✅ تم إضافة السؤال بنجاح! (رقم: {q_id})\n"
                 f"يمكنك إضافة المزيد باستخدام /add_question"
             )
     
@@ -482,16 +358,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             context.user_data['mcq_question'] = text
             context.user_data['adding_question']['step'] = 'options'
             await update.message.reply_text(
-                "🔤 أرسل خيارات الإجابة (كل خيار في سطر منفصل):\n\n"
-                "مثال:\n"
-                "0\n"
-                "3\n"
-                "6\n"
-                "9"
+                "🔤 أرسل خيارات الإجابة (مفصولة بفاصلة):\n\n"
+                "مثال: 0, 3, 6, 9"
             )
         
         elif adding['step'] == 'options':
-            options = [opt.strip() for opt in text.split('\n') if opt.strip()]
+            options = [opt.strip() for opt in text.split(',') if opt.strip()]
             if len(options) < 2:
                 await update.message.reply_text("⚠️ أرسل على الأقل خيارين!")
                 return
@@ -519,8 +391,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 context.user_data['mcq_answer'] = answer
                 context.user_data['adding_question']['step'] = 'explanation'
                 await update.message.reply_text(
-                    "📝 أرسل شرح الإجابة:\n\n"
-                    "مثال: 'الحل: (x²-9)/(x-3)=x+3، النهاية=6'"
+                    "📝 أرسل شرح الإجابة:"
                 )
             except ValueError:
                 await update.message.reply_text("⚠️ أرسل رقماً صحيحاً فقط!")
@@ -533,83 +404,82 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
             q_id = db.add_mcq_question(question, options, answer, explanation)
             
-            # تنظيف البيانات المؤقتة
             del context.user_data['adding_question']
             del context.user_data['mcq_question']
             del context.user_data['mcq_options']
             del context.user_data['mcq_answer']
             
-            letters = ['أ', 'ب', 'ج', 'د', 'ه', 'و']
-            answer_text = letters[answer] if answer < len(letters) else str(answer)
-            
             await update.message.reply_text(
-                f"✅ تم إضافة السؤال بنجاح!\n\n"
-                f"📝 السؤال: {question}\n"
-                f"✅ الإجابة الصحيحة: {answer_text}\n"
-                f"📚 رقم السؤال: {q_id}\n\n"
+                f"✅ تم إضافة السؤال بنجاح! (رقم: {q_id})\n"
                 f"يمكنك إضافة المزيد باستخدام /add_question"
             )
 
+# 🔧 تشغيل البوت بطريقة آمنة
+async def main():
+    try:
+        print("=" * 50)
+        print("🧮 بوت اختبارات رياضيات النهايات")
+        print("=" * 50)
+        print(f"📅 بدأ التشغيل: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+        print(f"👥 الطلاب المسجلين: {len(db.data['students'])}")
+        print("✅ البوت يعمل الآن...")
+        print("=" * 50)
+        
+        # إنشاء التطبيق
+        application = Application.builder().token(TOKEN).build()
+        
+        # إضافة Handlers
+        application.add_handler(CommandHandler("start", start_command))
+        application.add_handler(CommandHandler("truefalse", truefalse_command))
+        application.add_handler(CommandHandler("mcq", mcq_command))
+        application.add_handler(CommandHandler("score", score_command))
+        application.add_handler(CommandHandler("add_question", add_question_command))
+        application.add_handler(CommandHandler("view_questions", view_questions_command))
+        
+        application.add_handler(CallbackQueryHandler(handle_answer, pattern="^tf_"))
+        application.add_handler(CallbackQueryHandler(handle_answer, pattern="^mcq_"))
+        application.add_handler(CallbackQueryHandler(handle_teacher_actions, pattern="^add_"))
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+        
+        # البدء
+        await application.initialize()
+        await application.start()
+        
+        print("✅ البوت بدأ التشغيل بنجاح!")
+        
+        # Polling مع معالجة الأخطاء
+        try:
+            await application.updater.start_polling()
+            print("📡 البوت يستمع للرسائل...")
+            
+            # إبقاء البرنامج يعمل
+            while True:
+                await asyncio.sleep(1)
+                
+        except Conflict as e:
+            print(f"⚠️ تحذير: {e}")
+            print("يوجد نسخة أخرى من البوت تعمل. ربما تحتاج لإعادة تشغيل الخدمة على Render.")
+            await application.stop()
+            return
+            
+    except Exception as e:
+        print(f"❌ خطأ: {e}")
+
 # 🔧 تشغيل Flask في خيط منفصل
 def run_flask():
-    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
-
-# 🔧 تشغيل البوت
-def run_telegram_bot():
-    print("=" * 50)
-    print("🧮 بوت اختبارات رياضيات النهايات")
-    print("=" * 50)
-    print(f"📅 بدأ التشغيل: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    print(f"👥 الطلاب المسجلين: {len(db.data['students'])}")
-    
-    summary = db.get_questions_summary()
-    print(f"📚 الأسئلة: {summary['true_false']} صح/خطأ، {summary['mcq']} اختيار من متعدد")
-    print("✅ البوت يعمل 24/7 مع Keep-alive!")
-    print("👨🏫 خاصية إضافة الأسئلة للمعلم مفعلة")
-    print("=" * 50)
-    
-    # بدء Keep-alive
-    keep_alive()
-    
-    # تشغيل البوت
-    async def main():
-        app = Application.builder().token(TOKEN).build()
-        
-        # أوامر الطلاب
-        app.add_handler(CommandHandler("start", start_command))
-        app.add_handler(CommandHandler("truefalse", truefalse_command))
-        app.add_handler(CommandHandler("mcq", mcq_command))
-        app.add_handler(CommandHandler("score", score_command))
-        
-        # أوامر المعلم
-        app.add_handler(CommandHandler("add_question", add_question_command))
-        app.add_handler(CommandHandler("view_questions", view_questions_command))
-        app.add_handler(CommandHandler("delete_question", delete_question_command))
-        
-        # معالجات Callback
-        app.add_handler(CallbackQueryHandler(handle_answer, pattern="^tf_"))
-        app.add_handler(CallbackQueryHandler(handle_answer, pattern="^mcq_"))
-        app.add_handler(CallbackQueryHandler(handle_teacher_actions, pattern="^(add_|delete_|confirm_|cancel_)"))
-        
-        # معالجة الرسائل النصية (لإضافة الأسئلة)
-        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-        
-        await app.initialize()
-        await app.start()
-        await app.updater.start_polling()
-        
-        # استمر في التشغيل
-        while True:
-            await asyncio.sleep(3600)
-    
-    asyncio.run(main())
+    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False, threaded=True)
 
 # 🚀 نقطة البداية
 if __name__ == "__main__":
-    # تشغيل Flask في خيط منفصل
+    # تشغيل Flask
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
     
-    # تشغيل البوت بعد ثانيتين
-    time.sleep(2)
-    run_telegram_bot()
+    # انتظار ثم تشغيل البوت
+    time.sleep(3)
+    
+    # تشغيل البوت
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n⏹️ إيقاف البوت...")
